@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 
 namespace DOS
 {
@@ -15,7 +16,7 @@ namespace DOS
 
 			while (inputValid)
 			{
-				Menu(ref path, ref inputValid); 
+				Menu(ref path, ref inputValid);
 			}
 		}
 
@@ -29,10 +30,12 @@ namespace DOS
 			string deleteDirectory = "del";
 			string list = "list";
 			string createFile = "f";
-			string move = "move";
+			string rename = "rename";
+			string exit = "exit";
 			string help = "help";
+			string move = "move";
 
-			Console.Write(path + @">");
+			Console.Write(path + ">");
 			string input = Console.ReadLine();
 
 			RegexInput(input, out string command, out string attribute);
@@ -53,6 +56,11 @@ namespace DOS
 			{
 				path = ExitDirectory(path);
 			}
+			else if (command.Contains('.'))
+			{
+				string file = String.Format(@" /C notepad.exe {0}", command);
+				Process.Start("cmd.exe", file);
+			}
 			else if (command == listDirectory)
 			{
 				ListDirectory(unterordner);
@@ -60,7 +68,7 @@ namespace DOS
 			}
 			else if (command == deleteDirectory)
 			{
-				DeleteDirectory(path, attribute);
+				Delete(path, attribute);
 				return;
 			}
 			else if (command == createFile)
@@ -83,7 +91,7 @@ namespace DOS
 						foreach (var i in allFile)
 						{
 							Console.WriteLine(i);
-						} 
+						}
 					}
 					else
 					{
@@ -94,15 +102,23 @@ namespace DOS
 					ListFiles(path);
 				return;
 			}
-			else if (command == move)
+			else if (command == rename)
 			{
 				Move(path, input);
 				return;
+			}
+			else if (command == move)
+			{
+
 			}
 			else if (command == help)
 			{
 				Help();
 				return;
+			}
+			else if (command == exit)
+			{
+				inputValid = false;
 			}
 			else
 			{
@@ -140,8 +156,15 @@ namespace DOS
 		private static string ExitDirectory(string path)
 		{
 			DirectoryInfo directoryInfo = Directory.GetParent(path);
-			path = directoryInfo.ToString();
-			Directory.SetCurrentDirectory(path);
+			if (directoryInfo != null)
+			{
+				path = directoryInfo.ToString();
+				Directory.SetCurrentDirectory(path);
+			}
+			else
+			{
+				Console.WriteLine("Invalid path.");
+			}
 			return path;
 		}
 
@@ -160,20 +183,22 @@ namespace DOS
 			}
 		}
 
-		private static void DeleteDirectory(string path, string attribute)
+		private static void Delete(string path, string attribute)
 		{
 			if (attribute.Length > 0)
 			{
-				if (Directory.Exists(Path.Combine(path, attribute)))
+
+				if (File.Exists(Path.Combine(path, attribute)))
+				{
+					File.Delete(Path.Combine(path, attribute));
+				}
+				else if (Directory.Exists(Path.Combine(path, attribute)))
 				{
 					Directory.Delete(Path.Combine(path, attribute), true);
-					//DirectoryInfo directoryInfo = Directory.GetParent(path);
-					//path = directoryInfo.ToString();
-					//Directory.SetCurrentDirectory(path); 
 				}
 				else
 				{
-					Console.WriteLine("Directory not found.");
+					Console.WriteLine("Directory or file not found.");
 				}
 			}
 			else
@@ -200,14 +225,15 @@ namespace DOS
 
 		private static void Help()
 		{
-			Console.WriteLine("cd [name] = change directory");
-			Console.WriteLine("cd.. = exit directory");
-			Console.WriteLine("dir = list directory");
-			Console.WriteLine("list -all = list files");
-			Console.WriteLine("del [name] = delete directory");
-			Console.WriteLine("f [name.extension] = create file");
-			Console.WriteLine("d [name] = create dictonary");
-			Console.WriteLine("move [old name] [new name] = renames a file or directory");
+			Console.WriteLine("cd [name] = Change directory");
+			Console.WriteLine("cd.. = Exit directory");
+			Console.WriteLine("dir = List directory");
+			Console.WriteLine("list -all = List files");
+			Console.WriteLine("del [name] -extension = Delete directory or file");
+			Console.WriteLine("f [name.extension] = Create file");
+			Console.WriteLine("d [name] = Create dictonary");
+			Console.WriteLine("move [old name] [new name] = Renames a file or directory");
+			Console.WriteLine("exit = Exit");
 		}
 
 		private static void CreateDirectory(string path, string input)
@@ -276,6 +302,11 @@ namespace DOS
 			}
 			else if (prefix.ToLower() == "move")
 			{
+				if (!temp.Contains(' '))
+				{
+					Console.WriteLine("Invalid syntax.");
+					return;
+				}
 				for (int i = 0; i < temp.Length; i++)
 				{
 					if (char.IsWhiteSpace(temp[i]))
@@ -292,17 +323,6 @@ namespace DOS
 				command = prefix.ToLower();
 				output = temp.Trim();
 			}
-			//else if (prefix.ToLower() == "move")
-			//{
-			//	for (int i = 0; i < input.Length; i++)
-			//	{
-			//		if (char.IsWhiteSpace(input[i]))
-			//		{
-			//			output = input[i..].Trim();
-			//			break;
-			//		}
-			//	}
-			//}
 		}
 	}
 }
