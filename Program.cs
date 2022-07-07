@@ -16,6 +16,7 @@ namespace DOS
 
 			while (inputValid)
 			{
+				path = Directory.GetCurrentDirectory();
 				Menu(ref path, ref inputValid);
 			}
 		}
@@ -34,7 +35,7 @@ namespace DOS
 			string exit = "exit";
 			string help = "help";
 			string move = "move";
-			string getPath = "path";
+			string getSetPath = "path";
 
 			Console.Write(path + ">");
 			string input = Console.ReadLine();
@@ -117,9 +118,24 @@ namespace DOS
 				Rename(path, input);
 				return;
 			}
-			else if (command == getPath)
+			else if (command == getSetPath)
 			{
-				Console.WriteLine(Directory.GetCurrentDirectory());
+				if (attribute is null)
+				{
+					Console.WriteLine(Directory.GetCurrentDirectory());
+				}
+				else
+				{
+					if (Directory.Exists(attribute))
+					{
+						Directory.SetCurrentDirectory(attribute);
+						return;
+					}
+					else
+					{
+						Console.WriteLine("Path not found.");
+					}
+				}
 			}
 			else if (command == move)
 			{
@@ -144,33 +160,64 @@ namespace DOS
 		private static void Move(string input)
 		{
 			string currentPath = Directory.GetCurrentDirectory();
-			string sourceDirName = "";
-			string destDirName = "";
-			string destFolderName = "";
+			string destFName;
+			string destDirName;
+			string sourceDirName;
+
 			RegexInput(input, out _, out string attribute);
-
-			if (string.IsNullOrEmpty(attribute) || !attribute.Contains(' '))
+			if (!string.IsNullOrEmpty(attribute))
 			{
-				if (Directory.Exists(attribute) && attribute != currentPath)
+				//One path
+				if (!attribute.Contains(' '))
 				{
-					destFolderName = attribute[attribute.LastIndexOf('\\')..];
-					Directory.Move(attribute, currentPath + destFolderName);
-					return;
+					if (File.Exists(attribute))
+					{
+						destFName = attribute[attribute.LastIndexOf('\\')..];
+						if (!File.Exists(currentPath + destFName))
+						{
+							File.Move(attribute, currentPath + destFName);
+							return; 
+						}
+					}
+					if (Directory.Exists(attribute))
+					{
+						destFName = attribute[attribute.LastIndexOf('\\')..];
+						if (!Directory.Exists(currentPath + destFName))
+						{
+							Directory.Move(attribute, currentPath + destFName);
+							return; 
+						}
+					}
+					Console.WriteLine("Invalid file, folder or path.");
 				}
-				Console.WriteLine("Invalid syntax.");
-				return;
 			}
-
 			for (int i = 0; i < attribute.Length; i++)
 			{
+				//Two paths
 				if (char.IsWhiteSpace(attribute[i]))
 				{
 					destDirName = attribute[i..].Trim().ToLower();
 					sourceDirName = attribute.Remove(i).Trim().ToLower();
-					destFolderName = sourceDirName[sourceDirName.LastIndexOf('\\')..];
-					destDirName += destFolderName;
-					Directory.Move(sourceDirName, destDirName);
-					return;
+					if (File.Exists(sourceDirName))
+					{
+						destFName = sourceDirName[sourceDirName.LastIndexOf('\\')..];
+						destDirName += destFName;
+						if (!File.Exists(destDirName))
+						{
+							File.Move(sourceDirName, destDirName);
+							return;
+						}
+					}
+					else
+					{
+						destFName = sourceDirName[sourceDirName.LastIndexOf('\\')..];
+						destDirName += destFName;
+						if (!Directory.Exists(destDirName))
+						{
+							Directory.Move(sourceDirName, destDirName);
+							return; 
+						}
+					}
 				}
 			}
 		}
