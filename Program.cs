@@ -165,60 +165,92 @@ namespace DOS
 			string sourceDirName;
 
 			RegexInput(input, out _, out string attribute);
-			if (!string.IsNullOrEmpty(attribute))
+			if (attribute is not null)
 			{
 				//One path
 				if (!attribute.Contains(' '))
 				{
+					//for files
 					if (File.Exists(attribute))
 					{
 						destFName = attribute[attribute.LastIndexOf('\\')..];
 						if (!File.Exists(currentPath + destFName))
 						{
 							File.Move(attribute, currentPath + destFName);
-							return; 
+							return;
+						}
+						else
+						{
+							Console.WriteLine("File exists allready.");
 						}
 					}
+					//for folders
 					if (Directory.Exists(attribute))
 					{
 						destFName = attribute[attribute.LastIndexOf('\\')..];
 						if (!Directory.Exists(currentPath + destFName))
 						{
 							Directory.Move(attribute, currentPath + destFName);
-							return; 
+							return;
 						}
-					}
-					Console.WriteLine("Invalid file, folder or path.");
-				}
-			}
-			for (int i = 0; i < attribute.Length; i++)
-			{
-				//Two paths
-				if (char.IsWhiteSpace(attribute[i]))
-				{
-					destDirName = attribute[i..].Trim().ToLower();
-					sourceDirName = attribute.Remove(i).Trim().ToLower();
-					if (File.Exists(sourceDirName))
-					{
-						destFName = sourceDirName[sourceDirName.LastIndexOf('\\')..];
-						destDirName += destFName;
-						if (!File.Exists(destDirName))
+						else
 						{
-							File.Move(sourceDirName, destDirName);
+							Console.WriteLine("Folder exists allready.");
 							return;
 						}
 					}
-					else
+					Console.WriteLine("Invalid path, file or folder.");
+				}
+				else
+				{
+					for (int i = 0; i < attribute.Length; i++)
 					{
-						destFName = sourceDirName[sourceDirName.LastIndexOf('\\')..];
-						destDirName += destFName;
-						if (!Directory.Exists(destDirName))
+						//Two paths
+						if (char.IsWhiteSpace(attribute[i]))
 						{
-							Directory.Move(sourceDirName, destDirName);
-							return; 
+							destDirName = attribute[i..].Trim().ToLower();
+							sourceDirName = attribute.Remove(i).Trim().ToLower();
+							//for files
+							if (File.Exists(sourceDirName))
+							{
+								destFName = sourceDirName[sourceDirName.LastIndexOf('\\')..];
+								destDirName += destFName;
+								if (!File.Exists(destDirName))
+								{
+									File.Move(sourceDirName, destDirName);
+									return;
+								}
+								else
+								{
+									Console.WriteLine("File exists allready.");
+								}
+							}
+							//for directories
+							else if (Directory.Exists(sourceDirName))
+							{
+								destFName = sourceDirName[sourceDirName.LastIndexOf('\\')..];
+								destDirName += destFName;
+								if (!Directory.Exists(destDirName))
+								{
+									Directory.Move(sourceDirName, destDirName);
+									return;
+								}
+								else
+								{
+									Console.WriteLine("Folder exists allready.");
+								}
+							}
+							else
+							{
+								Console.WriteLine("Invalid path, file or folder.");
+							}
 						}
 					}
 				}
+			}
+			else
+			{
+				Console.WriteLine("Invalid syntax.");
 			}
 		}
 
@@ -286,7 +318,7 @@ namespace DOS
 
 		private static void Delete(string path, string attribute)
 		{
-			if (attribute.Length > 0)
+			if (attribute is not null)
 			{
 
 				if (File.Exists(Path.Combine(path, attribute)))
@@ -326,29 +358,38 @@ namespace DOS
 
 		private static void Help()
 		{
+			Console.WriteLine("SYNTAX: command [obligatory param] -optional param");
 			Console.WriteLine("cd [name] = Change directory");
 			Console.WriteLine("cd.. = Exit directory");
-			Console.WriteLine("dir = List directory");
-			Console.WriteLine("list -all = List files");
+			Console.WriteLine("dir = List directories");
+			Console.WriteLine("list -all = List files and directories");
 			Console.WriteLine("del [name] -extension = Delete directory or file");
 			Console.WriteLine("f [name.extension] = Create file");
-			Console.WriteLine("d [name] = Create dictonary");
+			Console.WriteLine("d [name] = Create directory");
 			Console.WriteLine("rename [name] [new name] = Renames a file or directory");
-			Console.WriteLine("move [source path] [destination path] = Moves a file or directory to the specific path");
-			Console.WriteLine("path = Returns the current path");
+			Console.WriteLine("move [source path] -destination path = Moves a file or directory to the working or a specific path");
+			Console.WriteLine("path -path = Returns the current path or sets a new working path");
 			Console.WriteLine("exit = Exit");
 		}
 
 		private static void CreateDirectory(string path, string input)
 		{
 			RegexInput(input, out _, out string directoryName);
-			if (!Directory.Exists(Path.Combine(path, directoryName)))
+
+			if (directoryName is not null)
 			{
-				Directory.CreateDirectory(Path.Combine(path, directoryName));
+				if (!Directory.Exists(Path.Combine(path, directoryName)))
+				{
+					Directory.CreateDirectory(Path.Combine(path, directoryName));
+				}
+				else
+				{
+					Console.WriteLine("Directory exists.");
+				}
 			}
 			else
 			{
-				Console.WriteLine("Directory exists.");
+				Console.WriteLine("Invalid syntax.");
 			}
 		}
 
@@ -356,14 +397,21 @@ namespace DOS
 		{
 			FileStream fs;
 			RegexInput(input, out string _, out string fileExtension);
-			if (!File.Exists(Path.Combine(path, fileExtension)))
+			if (fileExtension is not null)
 			{
-				fs = File.Create(Path.Combine(path, fileExtension));
-				fs.Close();
+				if (!File.Exists(Path.Combine(path, fileExtension)))
+				{
+					fs = File.Create(Path.Combine(path, fileExtension));
+					fs.Close();
+				}
+				else
+				{
+					Console.WriteLine("File exists.");
+				}
 			}
 			else
 			{
-				Console.WriteLine("File exists.");
+				Console.WriteLine("Invalid syntax.");
 			}
 		}
 
