@@ -34,6 +34,7 @@ namespace DOS
 			string exit = "exit";
 			string help = "help";
 			string move = "move";
+			string getPath = "path";
 
 			Console.Write(path + ">");
 			string input = Console.ReadLine();
@@ -58,7 +59,11 @@ namespace DOS
 			}
 			else if (command.Contains('.'))
 			{
-				string file = String.Format(@" /C notepad.exe {0}", command);
+				string file = "";
+				if (command.Contains(".txt"))
+				{
+					file = String.Format(@" /C notepad.exe {0}", command);
+				}
 				Process.Start("cmd.exe", file);
 			}
 			else if (command == listDirectory)
@@ -104,12 +109,16 @@ namespace DOS
 			}
 			else if (command == rename)
 			{
-				Move(path, input);
+				Rename(path, input);
 				return;
+			}
+			else if (command == getPath)
+			{
+				Console.WriteLine(Directory.GetCurrentDirectory());
 			}
 			else if (command == move)
 			{
-
+				Move(path, input);
 			}
 			else if (command == help)
 			{
@@ -127,12 +136,40 @@ namespace DOS
 			}
 		}
 
-
 		private static void Move(string path, string input)
+		{
+			string sourceDirName = "";
+			string destDirName = "";
+			RegexInput(input, out _, out string name);
+			if (String.IsNullOrEmpty(name) || !(name.Contains(' ')))
+			{
+				Console.WriteLine("Invalid syntax.");
+				return;
+			}
+			for (int i = 0; i < name.Length; i++)
+			{
+				if (char.IsWhiteSpace(name[i]))
+				{
+					destDirName = name[i..].Trim().ToLower();
+					sourceDirName = name.Remove(i).Trim().ToLower();
+					break;
+				}
+			}
+			string destFolderName = sourceDirName.Substring(sourceDirName.LastIndexOf('\\'));
+			
+			Directory.Move(sourceDirName, destDirName + destFolderName);
+		}
+
+		private static void Rename(string path, string input)
 		{
 			string oldName = "";
 			string newName = "";
 			RegexInput(input, out _, out string name);
+			if (String.IsNullOrEmpty(name) || !(name.Contains(' ')))
+			{
+				Console.WriteLine("Invalid syntax.");
+				return;
+			}
 			for (int i = 0; i < name.Length; i++)
 			{
 				if (char.IsWhiteSpace(name[i]))
@@ -143,6 +180,7 @@ namespace DOS
 				}
 			}
 			string[] allFiles = Directory.GetFileSystemEntries(path);
+
 			foreach (var i in allFiles)
 			{
 				if (i.EndsWith(oldName))
@@ -151,6 +189,7 @@ namespace DOS
 					return;
 				}
 			}
+			Console.WriteLine("Directory or file not found.");
 		}
 
 		private static string ExitDirectory(string path)
@@ -232,7 +271,9 @@ namespace DOS
 			Console.WriteLine("del [name] -extension = Delete directory or file");
 			Console.WriteLine("f [name.extension] = Create file");
 			Console.WriteLine("d [name] = Create dictonary");
-			Console.WriteLine("move [old name] [new name] = Renames a file or directory");
+			Console.WriteLine("rename [name] [new name] = Renames a file or directory");
+			Console.WriteLine("move [source path] [destination path] = Moves a file or directory to the specific path");
+			Console.WriteLine("path = Returns the current path");
 			Console.WriteLine("exit = Exit");
 		}
 
@@ -264,7 +305,7 @@ namespace DOS
 			}
 		}
 
-		private static void RegexInput(string input, out string command, out string output)
+		private static void RegexInput(string input, out string command, out string attribute)
 		{
 			string prefix = "";
 			string temp = "";
@@ -280,13 +321,13 @@ namespace DOS
 				}
 			}
 			command = prefix;
-			output = temp;
+			attribute = temp;
 			if (!whiteSpace)
 			{
 				command = input;
 				return;
 			}
-			if (prefix.ToLower() == "f")
+			if (command.ToLower() == "f")
 			{
 				for (int i = 0; i < temp.Length; i++)
 				{
@@ -294,34 +335,34 @@ namespace DOS
 					{
 						command = prefix.ToLower();
 						prefix = temp.Remove(i).Trim();
-						string attribute = temp[i..].Trim();
-						output = prefix + attribute;
+						string fileExtension = temp[i..].Trim();
+						fileExtension = prefix + fileExtension;
 						return;
 					}
 				}
 			}
-			else if (prefix.ToLower() == "move")
-			{
-				if (!temp.Contains(' '))
-				{
-					Console.WriteLine("Invalid syntax.");
-					return;
-				}
-				for (int i = 0; i < temp.Length; i++)
-				{
-					if (char.IsWhiteSpace(temp[i]))
-					{
-						prefix = temp.Remove(i).Trim();
-						string attribute = temp[i..].Trim();
-						output = prefix + " " + attribute;
-						return;
-					}
-				}
-			}
+			//else if (prefix.ToLower() == "move")
+			//{
+			//	if (!temp.Contains(' '))
+			//	{
+			//		Console.WriteLine("Invalid syntax.");
+			//		return;
+			//	}
+			//	//for (int i = 0; i < temp.Length; i++)
+			//	//{
+			//	//	if (char.IsWhiteSpace(temp[i]))
+			//	//	{
+			//	//		prefix = temp.Remove(i).Trim();
+			//	//		string fileName = temp[i..].Trim();
+			//	//		fileName = prefix + " " + fileName;
+			//	//		return;
+			//	//	}
+			//	//}
+			//}
 			else
 			{
 				command = prefix.ToLower();
-				output = temp.Trim();
+				attribute = temp.Trim();
 			}
 		}
 	}
