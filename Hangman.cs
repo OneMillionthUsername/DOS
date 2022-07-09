@@ -172,12 +172,16 @@ namespace DOS
 					//sonst doppelte Eingabe
 					else if (eingabe.Length == 1 && eingabe.All(char.IsLetter))
 					{
+						Console.WriteLine(new String(' ', Console.BufferWidth));
+						Console.SetCursorPosition(0, 6);
 						Console.WriteLine("Doppelte Eingabe!");
 						continue;
 					}
 					//sonst ungültige Eingabe
 					else if (eingabe != geheimWort && eingabe.Length != geheimWort.Length)
 					{
+						Console.WriteLine(new String(' ', Console.BufferWidth));
+						Console.SetCursorPosition(0, 6);
 						Console.WriteLine("Ungültige Eingabe!");
 						continue;
 					}
@@ -229,6 +233,8 @@ namespace DOS
 							Console.WriteLine($"Keine Versuche mehr. Verloren! Das Wort war {geheimWort.ToUpper()}.");
 							break;
 						}
+						Console.WriteLine(new String(' ', Console.BufferWidth));
+						Console.SetCursorPosition(0, 6);
 						Console.WriteLine($"Noch {versuche} Versuche.");
 					}
 					durchläufe++;
