@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace DOS
 {
-	class Program
+	class DOS
 	{
 		static void Main()
 		{
@@ -36,6 +36,7 @@ namespace DOS
 			string help = "help";
 			string move = "move";
 			string getSetPath = "path";
+			string hangman = "hangman";
 
 			Console.Write(path + ">");
 			string input = Console.ReadLine();
@@ -149,6 +150,10 @@ namespace DOS
 			else if (command == exit)
 			{
 				inputValid = false;
+			}
+			else if (command == hangman)
+			{
+				_ = new Hangman();
 			}
 			else
 			{
@@ -369,6 +374,7 @@ namespace DOS
 			Console.WriteLine("rename [name] [new name] = Renames a file or directory");
 			Console.WriteLine("move [source path] -destination path = Moves a file or directory to the working or a specific path");
 			Console.WriteLine("path -path = Returns the current path or sets a new working path");
+			Console.WriteLine("hangman = Play a game of hangman");
 			Console.WriteLine("exit = Exit");
 		}
 
